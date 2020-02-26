@@ -1,0 +1,11 @@
+--- drivers/net/wireless/rockchip_wlan/ssv6xxx/Makefile.org	2020-02-26 10:20:36.114566414 +0100
++++ drivers/net/wireless/rockchip_wlan/ssv6xxx/Makefile	2020-02-26 10:19:39.654496604 +0100
+@@ -19,7 +19,7 @@
+ include $(KBUILD_TOP)/platform-config.mak
+ 
+ 
+-EXTRA_CFLAGS := -I$(KBUILD_TOP) -I$(KBUILD_TOP)/include -Wno-error=missing-attributes
++EXTRA_CFLAGS := -I$(KBUILD_TOP) -I$(KBUILD_TOP)/include
+ DEF_PARSER_H = $(KBUILD_TOP)/include/ssv_conf_parser.h
+ $(shell env ccflags="$(ccflags-y)" $(KBUILD_TOP)/parser-conf.sh $(DEF_PARSER_H))
+ 

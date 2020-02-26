@@ -1,0 +1,73 @@
+# patches from git commit 08c77e53b94ccf072c7dc6a9d3ebd9f088deaf7e of
+# https://github.com/paolosabatino/armbian-build.git - branch rk3229 - path: patch/kernel/rk322x-legacy
+# kernel config armbian-build-rk322x/config/kernel/linux-rk322x-legacy.config
+# disabled HIGHMEM and ROCKCHIP_RGA2 for now
+#
+# directories:
+# - /compile/doc/rockchip-rk322x - the files in this dir
+# - /compile/source/linux-rockchip-rk322x - the kernel sources checked out from gitrepo
+# - /compile/result/rockchip-rk322x - the resulting kernel, modules etc. tar.gz files
+#
+# patches:
+# not sure if this is needed - if yes it might get adapted for the 4.4 rockchip kernel
+# set mac addr on kernel cmdline - otherwise a random one is generated
+#patch -p1 < /compile/doc/rockchip-rk322x/misc.322/gen-stmmac-mac-addr-on-kernel-cmdline-v5.3.patch
+#
+# armbian patches:
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0000-Revert-rk-add-gcc-wrapper.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0001-rockchip.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0002-ir.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0003-cec.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0004-audio.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0005-dts.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0006-rtl8211f.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0007-dtoverlay-configfs.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0008-mmc-pwrseq.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0009-mmc.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0010-dvb.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-0011-ir-rename-macros.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-1000-pl330.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-1000-vcodec.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-1001-ssv6051.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/01-linux-1002-rk322x-dts.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/02-000-remove-wrong-dts.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/02-002-dtsi-fix-arch-sys-counter.patch
+#patch -p1 < /compile/doc/rockchip-rk322x/misc.322/02-003-dtsi-adjust-gpu-node-for-r7p0.patch.disabled
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/arm64_makefile_fix_build_of_i-file_in_external_module_case.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/board-r329q-add-device-tree.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/board-rk322x-add-dts-makefiles.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/board-xt-mx4vr-v01-add-device-tree.patch
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/dtsi-rk322x-add-generic-tvbox.patch
+# compile fix
+patch -p0 < /compile/doc/rockchip-rk322x/misc.322/zzz-fix-ssv6xxx-compile.patch
+
+
+cp /compile/doc/rockchip-rk322x/config.322 /compile/source/linux-rockchip-rk322x/.config
+cd /compile/source/linux-rockchip-rk322x
+export ARCH=arm
+# make multi_v7_defconfig + fix options - see misc.322/options
+make oldconfig
+make -j 4 zImage dtbs modules
+export kver=`make kernelrelease`
+echo ${kver}
+# remove debug info if there and not wanted
+# find . -type f -name '*.ko' | sudo xargs -n 1 objcopy --strip-unneeded
+make modules_install
+# make headers_install INSTALL_HDR_PATH=/usr
+cp -v .config /boot/config-${kver}
+# for all except amlogic 32bit socs
+cp -v arch/arm/boot/zImage /boot/zImage-${kver}
+# for amlogic 32bit socs (legacy u-boot)
+mkimage -A arm -O linux -T kernel -C none -a 0x00208000 -e 0x00208000 -n linux-${kver} -d arch/arm/boot/zImage /boot/uImage-${kver}
+mkdir -p /boot/dtb-${kver}
+cp -v arch/arm/boot/dts/rk3228*.dtb /boot/dtb-${kver}
+cp -v arch/arm/boot/dts/rk3229*.dtb /boot/dtb-${kver}
+cp -v System.map /boot/System.map-${kver}
+cd /boot
+update-initramfs -c -k ${kver}
+mkimage -A arm -O linux -T ramdisk -a 0x0 -e 0x0 -n initrd.img-${kver} -d initrd.img-${kver} uInitrd-${kver}
+tar cvzf /compile/source/linux-rockchip-rk322x/${kver}.tar.gz /boot/*-${kver} /lib/modules/${kver}
+cp -v /compile/doc/rockchip-rk322x/config.322 /compile/doc/rockchip-rk322x/config.322.old
+cp -v /compile/source/linux-rockchip-rk322x/.config /compile/doc/rockchip-rk322x/config.322
+cp -v /compile/source/linux-rockchip-rk322x/.config /compile/doc/rockchip-rk322x/config.322-${kver}
+cp -v /compile/source/linux-rockchip-rk322x/*.tar.gz /compile/result/rockchip-rk322x

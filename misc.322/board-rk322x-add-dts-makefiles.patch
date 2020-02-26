@@ -1,0 +1,13 @@
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 4d9f7b328..a92d154f5 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -530,6 +530,8 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
+ 	rk3128h-evb-linux.dtb \
+ 	rk3188-radxarock.dtb \
+ 	rk3228-evb.dtb \
++	rk3229-r329q.dtb \
++	rk3229-xt-mx4vr-v01.dtb \
+ 	rk3229-at-3nod.dtb \
+ 	rk3229-at-3nod-func.dtb \
+ 	rk3229-at-gva.dtb \

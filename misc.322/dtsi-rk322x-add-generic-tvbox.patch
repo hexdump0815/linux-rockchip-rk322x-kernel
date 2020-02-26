@@ -1,0 +1,606 @@
+diff --git a/arch/arm/boot/dts/rk3229-generic-tvbox.dtsi b/arch/arm/boot/dts/rk3229-generic-tvbox.dtsi
+new file mode 100644
+index 000000000..c8372e72f
+--- /dev/null
++++ b/arch/arm/boot/dts/rk3229-generic-tvbox.dtsi
+@@ -0,0 +1,600 @@
++/*
++ * Copyright (c) 2017 Fuzhou Rockchip Electronics Co., Ltd
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This file is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This file is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ *  Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++/dts-v1/;
++
++#include "rk322x.dtsi"
++#include "rk3229-cpu-opp.dtsi"
++
++/ {
++
++	chosen {
++		stdout-path = &uart2;
++        };
++
++	memory@60000000 {
++		device_type = "memory";
++		reg = <0x60000000 0x40000000>;
++	};
++
++	bus_intmem@10080000 {
++                compatible = "mmio-sram";
++                reg = <0x10080000 0x9000>;
++                #address-cells = <1>;
++                #size-cells = <1>;
++                ranges = <0 0x10080000 0x9000>;
++                smp-sram@0 {
++                        compatible = "rockchip,rk3066-smp-sram";
++                        reg = <0x00 0x10>;
++                };
++                ddr_sram: ddr-sram@1000 {
++                        compatible = "rockchip,rk322x-ddr-sram";
++                        reg = <0x1000 0x8000>;
++                };
++        };
++
++	fiq-debugger {
++		compatible = "rockchip,fiq-debugger";
++		interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
++		rockchip,serial-id = <2>;
++		rockchip,signal-irq = <159>;
++		rockchip,wake-irq = <0>;
++		rockchip,irq-mode-enable = <0>; /* If enable uart uses irq instead of fiq */
++		rockchip,baudrate = <115200>; /* Only 115200 and 1500000 */
++		pinctrl-names = "default";
++		pinctrl-0 = <&uart21_xfer>;
++	  status = "disabled";
++	};
++
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		trust_reserved: trust@68400000 {
++			reg = <0x68400000 0xe00000>;
++			no-map;
++		};
++
++	};
++
++	psci {
++		compatible = "arm,psci-1.0";
++		method = "smc";
++	};
++
++	/*
++	 * Analog sound
++	 */
++	analog_sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,name = "ANALOG";
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&codec>;
++		};
++	};
++
++	/*
++	 * HDMI digital audio output
++	 */
++	hdmi_sound: hdmi-sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <128>; // 128 found in librelec dtb, original is 256
++		simple-audio-card,name = "DW-I2S-HDMI";
++		simple-audio-card,cpu {
++			sound-dai = <&i2s0>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&hdmi>;
++		};
++	};
++
++	/*
++	 * SPDIF digital audio output
++	 */
++	spdif-sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "SPDIF";
++		simple-audio-card,cpu {
++			sound-dai = <&spdif>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&spdif_out>;
++		};
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vccio_1v8_reg: regulator@0 {
++			compatible = "regulator-fixed";
++			regulator-name = "vccio_1v8";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-always-on;
++		};
++
++		vccio_3v3_reg: regulator@1 {
++			compatible = "regulator-fixed";
++			regulator-name = "vccio_3v3";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++	};
++
++	sdio_pwrseq: sdio-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++// 		clocks = <&hym8563>;
++// 		clock-names = "ext_clock";
++		pinctrl-names = "default";
++		pinctrl-0 = <&wifi_enable_h>;
++
++		reset-gpios = <&gpio2 26 GPIO_ACTIVE_LOW>; /* GPIO2_D2 */
++	};
++
++	spdif_out: spdif-out {
++		status = "okay";
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++	};
++
++	vcc_host: vcc-host-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		gpio = <&gpio3 20 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&host_vbus_drv>;
++		regulator-name = "vcc_host";
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vcc_otg_vbus: otg-vbus-regulator {
++		compatible = "regulator-fixed";
++		gpio = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&otg_vbus_drv>;
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-name = "vcc_otg_vbus";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++	};
++
++	vcc_phy: vcc-phy-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		regulator-name = "vcc_phy";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd_arm: vdd-arm-regulator {
++		compatible = "pwm-regulator";
++		rockchip,pwm_id = <1>;
++		rockchip,pwm_voltage = <1100000>;
++		pwms = <&pwm1 0 5000 1>;
++		regulator-name = "vdd_arm";
++		regulator-min-microvolt = <950000>;
++		regulator-max-microvolt = <1400000>;
++		regulator-ramp-delay = <12500>;
++		regulator-settling-time-up-us = <250>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vdd_log: vdd-log-regulator {
++		compatible = "pwm-regulator";
++		rockchip,pwm_id = <2>;
++		rockchip,pwm_voltage = <1200000>;
++		pwms = <&pwm2 0 5000 1>;
++		regulator-name = "vdd_log";
++		regulator-min-microvolt = <1000000>;
++		regulator-max-microvolt = <1300000>;
++		regulator-ramp-delay = <12500>;
++		regulator-settling-time-up-us = <250>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++};
++
++/** CPU topology and configuration */
++
++&cpu0 {
++	enable-method = "psci";
++	cpu-supply = <&vdd_arm>;
++};
++
++&cpu1 {
++	enable-method = "psci";
++	cpu-supply = <&vdd_arm>;
++};
++
++&cpu2 {
++	enable-method = "psci";
++	cpu-supply = <&vdd_arm>;
++};
++
++&cpu3 {
++	enable-method = "psci";
++	cpu-supply = <&vdd_arm>;
++};
++
++/** GPU, VPU and RGA */
++
++&gpu {
++	mali-supply = <&vdd_log>;
++	status = "okay";
++};
++
++&iep {
++	status = "okay";
++};
++
++&iep_mmu {
++	status = "okay";
++};
++
++
++&vpu_service {
++	status = "okay";
++};
++
++&vpu_mmu {
++	status = "okay";
++};
++
++&rkvdec {
++	vcodec-supply = <&vdd_log>;
++	status = "okay";
++};
++
++&rkvdec_mmu {
++	status = "okay";
++};
++
++&rk_rga {
++	status = "okay";
++};
++
++&vop {
++	assigned-clocks = <&cru DCLK_VOP>;
++	assigned-clock-parents = <&cru HDMIPHY>;
++	rockchip,grf = <&grf>;
++	status = "okay";
++};
++
++&vop_mmu {
++	status = "okay";
++};
++
++
++/** Ethernet */
++&gmac {
++
++	assigned-clocks = <&cru SCLK_MAC_SRC>;
++	assigned-clock-rates = <50000000>;
++
++	clock_in_out = "output";
++	phy-supply = <&vcc_phy>;
++	phy-mode = "rmii";
++	phy-is-integrated;
++
++	tx_delay = < 0x30 >;
++	rx_delay = < 0x10 >;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&phy_pins>;
++
++	snps,reset-gpio = <&gpio2 RK_PD0 GPIO_ACTIVE_LOW>;
++	snps,reset-active-low;
++
++	status = "okay";
++
++};
++
++/** HDMI and display subsystem */
++&hdmi {
++	status = "okay";
++	#sound-dai-cells = <0>;
++	ddc-i2c-scl-high-time-ns = <9625>;
++	ddc-i2c-scl-low-time-ns = <10000>;
++};
++
++&hdmi_phy {
++	status = "okay";
++};
++
++&display_subsystem {
++	status = "okay";
++
++	route {
++		route_hdmi: route-hdmi {
++			status = "okay";
++			connect = <&vop_out_hdmi>;
++		};
++	};
++};
++
++/** Miscellaneuos */
++&io_domains {
++	status = "okay";
++
++	vccio1-supply = <&vccio_3v3_reg>;
++	vccio2-supply = <&vccio_1v8_reg>;
++	vccio4-supply = <&vccio_3v3_reg>;
++};
++
++&dmc {
++  center-supply = <&vdd_log>;
++  status = "okay";
++};
++
++&tsadc {
++	rockchip,hw-tshut-mode = <0>; /* tshut mode 0:CRU 1:GPIO */
++	rockchip,hw-tshut-polarity = <0>;
++	rockchip,hw-tshut-temp = <95000>;
++	rockchip,grf = <&grf>;
++	status = "okay";
++};
++
++/** I2S and audio subsystem */
++&i2s0 {
++	status = "okay";
++	rockchip,bclk-fs = <128>;
++	#sound-dai-cells = <0>;
++};
++
++&i2s1 {
++	status = "okay";
++	#sound-dai-cells = <0>;
++};
++
++&codec {
++	#sound-dai-cells = <0>;
++	status = "okay";
++};
++
++&spdif {
++	status = "okay";
++	#sound-dai-cells = <0>;
++};
++
++/** Integration to pin controller */
++&pinctrl {
++
++	keys {
++		pwr_key: pwr-key {
++			rockchip,pins = <3 23 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
++
++	sdmmc {
++		sdmmc_pwr: sdmmc-pwr {
++			rockchip,pins = <1 14 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	sdio-pwrseq {
++		wifi_enable_h: wifi-enable-h {
++			rockchip,pins = <2 26 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	usb {
++		host_vbus_drv: host-vbus-drv {
++			rockchip,pins = <3 20 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
++		otg_vbus_drv: otg-vbus-drv {
++			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++	ir {
++		ir_gpio: ir-gpio {
++			rockchip,pins = <1 11 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
++
++	spdif {
++		spdif_gpio: spdif-gpio {
++			rockchip,pins = <3 31 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
++};
++
++/** PWM controllers */
++&pwm1 {
++	status = "okay";
++	pinctrl-names = "active";
++	pinctrl-0 = <&pwm1_pin_pull_down>;
++};
++
++&pwm2 {
++	status = "okay";
++	pinctrl-names = "active";
++	pinctrl-0 = <&pwm2_pin_pull_up>;
++};
++
++/** USB PHY and ports **/
++&u2phy0 {
++
++	status = "okay";
++
++	u2phy0_otg: otg-port {
++		phy-supply = <&vcc_otg_vbus>;
++		status = "okay";
++	};
++
++	u2phy0_host: host-port {
++		phy-supply = <&vcc_host>;
++		status = "okay";
++	};
++};
++
++&u2phy1 {
++	status = "okay";
++
++	u2phy1_otg: otg-port {
++		status = "okay";
++		phy-supply = <&vcc_host>;
++	};
++
++	u2phy1_host: host-port {
++		phy-supply = <&vcc_host>;
++		status = "okay";
++	};
++};
++
++&usb_host0_ehci {
++	status = "okay";
++};
++
++&usb_host0_ohci {
++	status = "okay";
++};
++
++&usb_host1_ehci {
++	status = "okay";
++};
++
++&usb_host1_ohci {
++	status = "okay";
++};
++
++&usb_host2_ehci {
++	status = "okay";
++};
++
++&usb_host2_ohci {
++	status = "okay";
++};
++
++&usb_otg {
++	status = "okay";
++	dr_mode = "host";
++};
++
++/** UARTs **/
++
++&uart0 {
++	status = "disabled";
++};
++
++&uart1 {
++	status = "disabled";
++};
++
++&uart2 {
++	status = "okay";
++};
++
++/** MMC and NAND controller and interfaces */
++
++&emmc {
++
++	clock-frequency = <50000000>;
++	clock-freq-min-max = <400000 50000000>;
++	broken-cd;
++	cap-mmc-highspeed;
++	supports-emmc;
++	disable-wp;
++	non-removable;
++	/delete-property/ pinctrl-names;
++	/delete-property/ pinctrl-0;
++	status = "okay";
++
++};
++
++&sdmmc {
++	status = "okay";
++
++	bus-width = <4>;
++	cap-sd-highspeed;
++	card-detect-delay = <200>;
++	max-frequency = <50000000>;
++	num-slots = <1>;
++	supports-sd;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&sdmmc_pwr &sdmmc_clk &sdmmc_cmd &sdmmc_bus4>;
++};
++
++&nandc {
++	status = "okay";
++};
++
++&sdio {
++	status = "okay";
++	max-frequency = <37500000>;
++	bus-width = <4>;
++
++	cap-mmc-highspeed;
++	cap-sd-highspeed;
++	cap-sdio-irq;
++	non-removable;
++	ignore-pm-notify;
++	keep-power-in-suspend;
++
++	supports-sdio;
++	num-slots = <1>;
++	mmc-pwrseq = <&sdio_pwrseq>;
++
++};
