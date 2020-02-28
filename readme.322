@@ -44,6 +44,13 @@ patch -p0 < /compile/doc/rockchip-rk322x/misc.322/zzz-fix-ssv6xxx-compile.patch
 
 cp /compile/doc/rockchip-rk322x/config.322 /compile/source/linux-rockchip-rk322x/.config
 cd /compile/source/linux-rockchip-rk322x
+
+# not needed as the memory setting in the dtb seems to be not relevant - maybe due to highmem - ?
+# # add r39-4k dtb based on rk3229-xt-mx4vr-v01.dtb but with 2gb ram - has to be redone for each new kernel version
+# git checkout -- arch/arm/boot/dts/Makefile
+# cp arch/arm/boot/dts/rk3229-xt-mx4vr-v01.dts arch/arm/boot/dts/rk3229-r39-4k.dts
+# patch -p1 < /compile/doc/rockchip-rk322x/misc.322/zzz-add-and-adjust-rk3229-r39-4k-dtb.patch
+
 export ARCH=arm
 # make multi_v7_defconfig + fix options - see misc.322/options
 make oldconfig
@@ -71,3 +78,16 @@ cp -v /compile/doc/rockchip-rk322x/config.322 /compile/doc/rockchip-rk322x/confi
 cp -v /compile/source/linux-rockchip-rk322x/.config /compile/doc/rockchip-rk322x/config.322
 cp -v /compile/source/linux-rockchip-rk322x/.config /compile/doc/rockchip-rk322x/config.322-${kver}
 cp -v /compile/source/linux-rockchip-rk322x/*.tar.gz /compile/result/rockchip-rk322x
+
+# /boot/extlinux/extlinux.conf
+TIMEOUT 30
+DEFAULT v44194
+
+MENU TITLE rk3229 boot options
+
+LABEL v44194
+      MENU LABEL v4.4.194 kernel
+      LINUX ../zImage-4.4.194-rkc-322
+      FDT ../dtb-4.4.194-rkc-322/rk3229-xt-mx4vr-v01.dtb
+      INITRD ../initrd.img-4.4.194-rkc-322
+      APPEND earlyprintk root=/dev/mmcblk0p3 console=ttyS2,115200n8 console=tty0 rootwait rootfstype=ext4 consoleblank=0 loglevel=8 fsck.repair=yes net.ifnames=0 ipv6.disable=1

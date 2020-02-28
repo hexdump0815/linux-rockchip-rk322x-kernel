@@ -1,0 +1,13 @@
+diff --git a/src/drmmode_rockchip/drmmode_rockchip.c b/src/drmmode_rockchip/drmmode_rockchip.c
+index 9a54220..8d522d8 100644
+--- a/src/drmmode_rockchip/drmmode_rockchip.c
++++ b/src/drmmode_rockchip/drmmode_rockchip.c
+@@ -119,7 +119,7 @@ struct drmmode_interface rockchip_interface = {
+ 	CURSORW               /* cursor width */,
+ 	CURSORH               /* cursor_height */,
+ 	CURSORPAD             /* cursor padding */,
+-	HWCURSOR_API_STANDARD    /* cursor_api */,
++	HWCURSOR_API_NONE     /* cursor_api */,
+ 	init_plane_for_cursor /* init_plane_for_cursor */,
+ 	1                     /* vblank_query_supported */,
+ 	create_custom_gem     /* create_custom_gem */,

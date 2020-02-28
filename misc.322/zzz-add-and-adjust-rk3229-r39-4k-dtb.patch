@@ -1,0 +1,35 @@
+--- a/arch/arm/boot/dts/rk3229-r39-4k.dts.org	2020-02-28 11:54:54.915467618 +0100
++++ a/arch/arm/boot/dts/rk3229-r39-4k.dts	2020-02-28 11:54:35.645478629 +0100
+@@ -48,6 +48,11 @@
+ 	model = "Chiptrip xt-mx4vr-v01 TV Box board";
+ 	compatible = "chiptrip,xt-mx4vr-v01", "rockchip,rk3229";
+ 
++	memory@60000000 {
++		device_type = "memory";
++		reg = <0x60000000 0x80000000>;
++	};
++
+ 	wireless-wlan {
+ 		compatible = "wlan-platdata";
+ 		rockchip,grf = <&grf>;
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 4d9f7b328db3..7f77db6c0c8b 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -530,13 +530,15 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
+ 	rk3128h-evb-linux.dtb \
+ 	rk3188-radxarock.dtb \
+ 	rk3228-evb.dtb \
++	rk3229-r329q.dtb \
++	rk3229-xt-mx4vr-v01.dtb \
++	rk3229-r39-4k.dtb \
+ 	rk3229-at-3nod.dtb \
+ 	rk3229-at-3nod-func.dtb \
+ 	rk3229-at-gva.dtb \
+ 	rk3229-echo-v10.dtb \
+ 	rk3229-evb.dtb \
+ 	rk3229-evb-android.dtb \
+-	rk3229-evb-android-avb.dts \
+ 	rk3229-gva-sdk.dtb \
+ 	rk3288-evb-act8846.dtb \
+ 	rk3288-evb-android-act8846-edp.dtb \

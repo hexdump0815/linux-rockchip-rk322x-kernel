@@ -16,8 +16,9 @@ KERNEL=="mali0", MODE="0660", GROUP="video"
 # xorg server
 apt-get install xserver-xorg-dev libtool automake xutils-dev libudev-dev
 git clone https://github.com/paolosabatino/xf86-video-armsoc.git
-mv xf86-video-armsoc rockchip-xf86-video-armsoc
-cd rockchip-xf86-video-armsoc
+mv xf86-video-armsoc rockchip-rk322x-xf86-video-armsoc
+cd rockchip-rk322x-xf86-video-armsoc
+patch -p1 < /compile/doc/rockchip-rk322x/misc.322/xorg-armsoc-rk322x-cursor.patch
 ./autogen.sh
 make
 result: src/.libs/armsoc_drv.so
