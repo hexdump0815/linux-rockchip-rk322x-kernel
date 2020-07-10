@@ -1,0 +1,5 @@
+hk1mini seems to work ok with the mk809iv one ... but maybe its would be even better if based on the hk1mini one
+
+based on LibreELEC-RK322x.arm-9.2-devel-20200114140401-0bca75f-rk3228b-mk809iv.img
+
+dd if=LibreELEC-RK322x.arm-9.2-devel-20200114140401-0bca75f-rk3228b-mk809iv.img of=/dev/sdx bs=512 count=32767 conv=sync status=progress seek=1 skip=1
