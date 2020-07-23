@@ -18,6 +18,8 @@ apt-get install xserver-xorg-dev libtool automake xutils-dev libudev-dev
 git clone https://github.com/paolosabatino/xf86-video-armsoc.git
 mv xf86-video-armsoc rockchip-rk322x-xf86-video-armsoc
 cd rockchip-rk322x-xf86-video-armsoc
+# for that version the below patch matches
+git checkout 7045ed67f7684afdd6d1cdfd70f25331a6067b29
 patch -p1 < /compile/doc/rockchip-rk322x/misc.322/xorg-armsoc-rk322x-cursor.patch
 ./autogen.sh
 make

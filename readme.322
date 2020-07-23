@@ -67,6 +67,9 @@ cp -v arch/arm/boot/zImage /boot/zImage-${kver}
 # for amlogic 32bit socs (legacy u-boot)
 mkimage -A arm -O linux -T kernel -C none -a 0x00208000 -e 0x00208000 -n linux-${kver} -d arch/arm/boot/zImage /boot/uImage-${kver}
 mkdir -p /boot/dtb-${kver}
+# i did not find the linux tree dts file for this one, so copy the dtb
+# file included in the armbian build here directly to /boot
+cp -v /compile/doc/rockchip-rk322x/misc.322/dtb/*.dtb /boot/dtb-${kver}
 cp -v arch/arm/boot/dts/rk3228*.dtb /boot/dtb-${kver}
 cp -v arch/arm/boot/dts/rk3229*.dtb /boot/dtb-${kver}
 cp -v System.map /boot/System.map-${kver}
